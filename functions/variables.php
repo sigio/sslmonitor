@@ -28,14 +28,14 @@ ini_set('default_socket_timeout', 2);
 
 $random_blurp = rand(1000,99999);
 
-$current_domain = "certificatemonitor.org";
+$current_domain = "sslmonitor.eu";
 $current_link = $current_domain;
 
 // set this to a location outside of your webroot so that it cannot be accessed via the internets.
 
 
-$pre_check_file = '/var/www/certificatemonitor.org/cert-monitor/pre_checks.json';
-$check_file = '/var/www/certificatemonitor.org/cert-monitor/checks.json';
-$deleted_check_file = '/var/www/certificatemonitor.org/cert-monitor/deleted_checks.json';
+$pre_check_file = '/srv/sslmonitor.eu/pre_checks.json';
+$check_file = '/srv/sslmonitor.eu/checks.json';
+$deleted_check_file = '/srv/sslmonitor.eu/deleted_checks.json';
 
 ?>
