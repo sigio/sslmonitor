@@ -44,40 +44,44 @@ if (php_sapi_name() == "cli") {
   }
 
   echo "\n===== start " . date('Y-m-d H:i:s') . "=====\n";
-
   foreach ($json_a as $key => $value) {
-    $domain = $value['domain'];
-    $email = $value['email'];
-
-    $val_domain = validate_domains($domain);
-    if (count($val_domain['errors']) >= 1 ) {
-      $errors = $val_domain['errors'];
-      $errortexts = '';
-      foreach ($errors as $error_value) {
-        echo "\n" . $error_value . "  Domain: " . $domain . "\n";
-        $errortexts .= $error_value . "\n";
-        send_error_mail($domain, $email, $errors);
-        continue;
+      $domain = $value['domain'];
+      $email = $value['email'];
+  
+      // Validate the domain and make sure errors is an array
+      $val_domain = validate_domains($domain);
+  
+      // Ensure that $val_domain['errors'] exists and is an array
+      if (!isset($val_domain['errors']) || !is_array($val_domain['errors'])) {
+          $val_domain['errors'] = [];
       }
-      
-      $json_a[$key]['errors'] += 1;
-      $check_json = json_encode($json_a); 
-      if(file_put_contents($check_file, $check_json, LOCK_EX)) {
-        echo "\nError count updated to " . $json_a[$key]['errors'] . " for " . $domain . "\n";
-      } else {
-        echo "\nCan't write database.\n";
-        continue;
+  
+      // Check if there are any errors
+      if (count($val_domain['errors']) >= 1) {
+          $errors = $val_domain['errors'];
+          $errortexts = '';
+          foreach ($errors as $error_value) {
+              echo "\n" . $error_value . "  Domain: " . $domain . "\n";
+              $errortexts .= $error_value . "\n";
+              send_error_mail($domain, $email, $errors);
+          }
+  
+          $json_a[$key]['errors'] += 1;
+          $check_json = json_encode($json_a);
+          if (file_put_contents($check_file, $check_json, LOCK_EX)) {
+              echo "\nError count updated to " . $json_a[$key]['errors'] . " for " . $domain . "\n";
+          } else {
+              echo "\nCan't write database.\n";
+          }
+  
+          if ($json_a[$key]['errors'] >= 7) {
+              echo "\nToo many errors. Adding " . $domain . " to removal queue.\n";
+              $removal_queue[] = $key;
+          }
+  
+          continue;
       }
-      if ($json_a[$key]['errors'] >= 7) {
-        echo "\nToo many errors. Adding " . $domain . " to removal queue.\n";
-        $removal_queue[] = $key;
-        continue;
-      }
-
-      #if (strpos($errortexts,'\nDomain has expired certificate in chain') !== false) {
-      #  continue;
-      #}
-    }
+  
     $raw_chain = get_raw_chain($domain);
     $counter = 0;
     if (count($raw_chain['chain']) > 0) {

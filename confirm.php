@@ -21,14 +21,21 @@ foreach (glob("functions/*.php") as $filename) {
 
 require('inc/header.php');
 
-if ( isset($_GET['id']) && !empty($_GET['id'])  ) {
+if ( isset($_GET['id']) && !empty($_GET['id']) ) {
   $id = htmlspecialchars($_GET['id']);
   $uuid_pattern = "/([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})/";
+  
   if (preg_match($uuid_pattern, $id)) {
-    $userip = $_SERVER["HTTP_X_FORWARDED_FOR"] ? $_SERVER["HTTP_X_FORWARDED_FOR"] : $_SERVER["REMOTE_ADDR"];
+    // Use isset() or ?? to safely access HTTP_X_FORWARDED_FOR
+    $userip = $_SERVER["HTTP_X_FORWARDED_FOR"] ?? $_SERVER["REMOTE_ADDR"];
+    
+    // Call the function
     $add_domain = add_domain_check($id, $userip);
-    if (is_array($add_domain["errors"]) && count($add_domain["errors"]) != 0) {
+    
+    // Check if the 'errors' key exists and is an array
+    if (isset($add_domain["errors"]) && is_array($add_domain["errors"]) && count($add_domain["errors"]) != 0) {
       $errors = array_unique($add_domain["errors"]);
+      
       foreach ($add_domain["errors"] as $key => $err_value) {
         echo "<div class='alert alert-danger' role='alert'>";
         echo htmlspecialchars($err_value);
@@ -40,13 +47,13 @@ if ( isset($_GET['id']) && !empty($_GET['id'])  ) {
       echo "</div>";
     }
   } else {
-      echo "<div class='alert alert-danger' role='alert'>";;
-      echo "Error. ID is invalid.<br>";
-      echo "Please return and try again.<br>";
-      echo "</div>";
+    echo "<div class='alert alert-danger' role='alert'>";
+    echo "Error. ID is invalid.<br>";
+    echo "Please return and try again.<br>";
+    echo "</div>";
   }
 } else {
-  echo "<div class='alert alert-danger' role='alert'>";;
+  echo "<div class='alert alert-danger' role='alert'>";
   echo "Error. ID is required.<br>";
   echo "Please return and try again.<br>";
   echo "</div>";

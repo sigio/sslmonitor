@@ -40,12 +40,21 @@ function endsWith($haystack, $needle) {
 }
 
 function get_current_folder(){
-    $url = $_SERVER['REQUEST_URI']; 
-    $parts = explode('/',$url);
+    // Use isset() or null coalescing to handle cases where REQUEST_URI is not set
+    $url = $_SERVER['REQUEST_URI'] ?? '';  // Provide an empty string as fallback if REQUEST_URI is not set
+    
+    // Ensure $url is not empty before passing to explode
+    if (!empty($url)) {
+        $parts = explode('/', $url);
+    } else {
+        $parts = [];
+    }
+
     $folder = '';
     for ($i = 0; $i < count($parts) - 1; $i++) {
         $folder .= $parts[$i] . "/";
     }
+
     return $folder;
 }
 

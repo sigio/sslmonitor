@@ -56,25 +56,31 @@ function validate_domains($domains) {
     }
   }
 
-  if (is_array($errors) && count($errors) == 0) {
-    foreach ($domains as $key => $value) {
-      $raw_chain = get_raw_chain(trim($value));
-      if ($raw_chain['error']) {
-        foreach ($raw_chain['error'] as $error_key => $error_value) {
-          $errors[] = "\n - " . htmlspecialchars($error_value);
-        }
-      } else {
-        foreach ($raw_chain['chain'] as $raw_key => $raw_value) {
-          $cert_expiry = cert_expiry($raw_value);
-          $cert_subject = cert_subject($raw_value);
-          if ($cert_expiry['cert_expired']) {
-            $errors[] = "Domain has expired certificate in chain: " . htmlspecialchars($value) . ". Cert Subject: " . htmlspecialchars($cert_subject) . ".";
-          }
-        }
-      }
-    }
-  }
+  if (is_array($errors) && count($errors ?? []) === 0) {
+      foreach ($domains as $key => $value) {
+          $raw_chain = get_raw_chain(trim($value));
 
+          // Check if 'error' key exists before accessing it
+          if (isset($raw_chain['error']) && is_array($raw_chain['error'])) {
+              foreach ($raw_chain['error'] as $error_key => $error_value) {
+                  $errors[] = "\n - " . htmlspecialchars($error_value);
+              }
+          } else {
+              // Check if 'chain' key exists and is an array
+              if (isset($raw_chain['chain']) && is_array($raw_chain['chain'])) {
+                  foreach ($raw_chain['chain'] as $raw_key => $raw_value) {
+                      $cert_expiry = cert_expiry($raw_value);
+                      $cert_subject = cert_subject($raw_value);
+
+                      // Safely check for 'cert_expired' and add error if necessary
+                      if (isset($cert_expiry['cert_expired']) && $cert_expiry['cert_expired']) {
+                          $errors[] = "Domain has expired certificate in chain: " . htmlspecialchars($value) . ". Cert Subject: " . htmlspecialchars($cert_subject) . ".";
+                      }
+                  }
+              }
+          }
+      }
+  }
 
   if (is_array($errors) && count($errors) >= 1) {
     $result = array();

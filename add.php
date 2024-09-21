@@ -33,12 +33,14 @@ if ( isset($_POST['email']) && !empty($_POST['email']) && isset($_POST['domains'
   }
 
   $domains = validate_domains($_POST['domains']);
-  if ( count($domains['errors']) >= 1 ) {
+  
+  // Check if 'errors' exists in $domains and handle it safely
+  if ( isset($domains['errors']) && count($domains['errors']) >= 1 ) {
     foreach ($domains['errors'] as $key => $value) {
       $errors[] = $value;
     }
   } 
-  
+
   if (is_array($errors) && count($errors) != 0) {
     $errors = array_unique($errors);
     foreach ($errors as $key => $value) {
@@ -47,14 +49,17 @@ if ( isset($_POST['email']) && !empty($_POST['email']) && isset($_POST['domains'
       echo "</div>";
     }
     echo "Please return and try again.<br>";
-  } elseif ( is_array($errors) && count($errors) == 0 && is_array($domains['domains']) && count($domains['domains']) != 0 && count($domains['domains']) < 21) {
+  } elseif (is_array($errors) && count($errors) == 0 && isset($domains['domains']) && is_array($domains['domains']) && count($domains['domains']) != 0 && count($domains['domains']) < 21) {
     echo "<div class='alert alert-info' role='alert'>";
     echo "Email: " . htmlspecialchars($email) . ".<br>";
     echo "</div>";
+
     foreach ($domains['domains'] as $key => $value) {
-      $userip = $_SERVER["HTTP_X_FORWARDED_FOR"] ? $_SERVER["HTTP_X_FORWARDED_FOR"] : $_SERVER["REMOTE_ADDR"];
+      $userip = $_SERVER["HTTP_X_FORWARDED_FOR"] ?? $_SERVER["REMOTE_ADDR"];
       $add_domain = add_domain_to_pre_check($value, $email, $userip);
-      if (is_array($add_domain["errors"]) && count($add_domain["errors"]) != 0) {
+      
+      // Safely check if 'errors' exists in $add_domain
+      if (isset($add_domain["errors"]) && is_array($add_domain["errors"]) && count($add_domain["errors"]) != 0) {
         $errors = array_unique($add_domain["errors"]);
         foreach ($add_domain["errors"] as $key => $err_value) {
           echo "<div class='alert alert-danger' role='alert'>";
@@ -74,8 +79,7 @@ if ( isset($_POST['email']) && !empty($_POST['email']) && isset($_POST['domains'
     echo "</div>";
   }
 } else {
-
-  echo "<div class='alert alert-danger' role='alert'>";;
+  echo "<div class='alert alert-danger' role='alert'>";
   echo "Error. Domain(s) and email address are required.<br>";
   echo "Please return and try again.<br>";
   echo "</div>";
